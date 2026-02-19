@@ -1,6 +1,6 @@
 name: Build Sideload IPA
 on:
-  workflow_dispatch: # This adds the "Run" button
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,10 +12,12 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.24.0' # Compatible version for most 2025/2026 builds
+          flutter-version: '3.32.5' # Pinning to the exact recommended version
 
       - name: Get Dependencies
-        run: flutter pub get
+        run: |
+          flutter pub upgrade # This helps resolve minor version mismatches automatically
+          flutter pub get
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign
