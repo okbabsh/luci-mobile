@@ -8,12 +8,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Flutter (Pre-Breaking Change)
+      - name: Setup Flutter (Confirmed Stable)
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # v3.31.0 is the last version before the Radio API overhaul
-          flutter-version: '3.31.0' 
+          # 3.32.0 is the official stable release for this branch
+          flutter-version: '3.32.0' 
 
       - name: Resolve Dependencies
         run: flutter pub get
@@ -25,10 +25,10 @@ jobs:
         run: |
           mkdir -p Payload
           mv build/ios/iphoneos/Runner.app Payload/
-          zip -r LuCI_Mobile_Safe.ipa Payload
+          zip -r LuCI_Mobile_332.ipa Payload
           
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: Luci-Mobile-Final
-          path: LuCI_Mobile_Safe.ipa
+          path: LuCI_Mobile_332.ipa
