@@ -8,20 +8,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Flutter
+      - name: Setup Flutter (Latest to satisfy SDK)
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # This version specifically includes Dart SDK 3.8.1
-          flutter-version: '3.32.8' 
+          # We are using the exact version the error asked for!
+          flutter-version: '3.41.2' 
 
-      - name: Patch Settings Screen (Surgical)
+      - name: Smart Python Auto-Patch
         run: |
-          # This finds the Radio button and injects 'groupValue: 0,' 
-          # using a method that works on macOS runners.
-          sed -i '' 's/value: 0,/groupValue: 0, value: 0,/g' lib/screens/settings_screen.dart
-          sed -i '' 's/value: 1,/groupValue: 0, value: 1,/g' lib/screens/settings_screen.dart
-          echo "Patched Required groupValue for Flutter 3.32.8"
+          python3 -c "
+          path = 'lib/screens/settings_screen.dart'
+          with open(path, 'r') as f:
+              lines = f.readlines()
+          
+          # This script looks at every line. If it sees 'value:', it checks the 
+          # surrounding lines for the word 'Radio'. If it finds it, it injects the fix safely.
+          for i in range(len(lines)):
+              if 'value:' in lines[i] and 'groupValue:' not in lines[i]:
+                  context = ''.join(lines[max(0, i-3):i+1])
+                  if 'Radio' in context:
+                      lines[i] = lines[i].replace('value:', 'groupValue: null, value:')
+          
+          with open(path, 'w') as f:
+              f.writelines(lines)
+          print('Settings screen successfully patched using Python!')
+          "
 
       - name: Resolve Dependencies
         run: flutter pub get
