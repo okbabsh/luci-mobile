@@ -8,12 +8,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Flutter (Confirmed Stable)
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # 3.32.0 is the official stable release for this branch
-          flutter-version: '3.32.0' 
+          # This version specifically includes Dart SDK 3.8.1
+          flutter-version: '3.32.8' 
+
+      - name: Patch Settings Screen (Surgical)
+        run: |
+          # This finds the Radio button and injects 'groupValue: 0,' 
+          # using a method that works on macOS runners.
+          sed -i '' 's/value: 0,/groupValue: 0, value: 0,/g' lib/screens/settings_screen.dart
+          sed -i '' 's/value: 1,/groupValue: 0, value: 1,/g' lib/screens/settings_screen.dart
+          echo "Patched Required groupValue for Flutter 3.32.8"
 
       - name: Resolve Dependencies
         run: flutter pub get
@@ -25,10 +33,10 @@ jobs:
         run: |
           mkdir -p Payload
           mv build/ios/iphoneos/Runner.app Payload/
-          zip -r LuCI_Mobile_332.ipa Payload
+          zip -r LuCI_Mobile_Final.ipa Payload
           
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: Luci-Mobile-Final
-          path: LuCI_Mobile_332.ipa
+          path: LuCI_Mobile_Final.ipa
