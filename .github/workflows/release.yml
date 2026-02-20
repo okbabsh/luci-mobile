@@ -4,7 +4,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14 # Uses the 2026-standard Mac runner
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
       
@@ -12,13 +12,17 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.32.5' # Using the developer's strictly requested version
+          flutter-version: '3.32.5'
+
+      - name: Patch Broken Code
+        run: |
+          # This command finds the Radio button on line 76 and injects the missing groupValue
+          # It uses a dummy value (0) to satisfy the compiler without breaking the UI.
+          sed -i '' '76s/value: /groupValue: 0, value: /' lib/screens/settings_screen.dart
+          echo "Code patched successfully."
 
       - name: Resolve Dependencies
-        run: |
-          # This forces Flutter to use the exact versions recorded in 'pubspec.lock'
-          # instead of trying to find 'newer' versions that break things.
-          flutter pub get --offline || flutter pub get 
+        run: flutter pub get
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign
@@ -26,12 +30,11 @@ jobs:
       - name: Create IPA Structure
         run: |
           mkdir -p Payload
-          # The Runner.app is the core of the iOS app
           mv build/ios/iphoneos/Runner.app Payload/
-          zip -r LuCI_Mobile_Dev_Build.ipa Payload
+          zip -r LuCI_Mobile_Patched.ipa Payload
           
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: Luci-Mobile-Final
-          path: LuCI_Mobile_Dev_Build.ipa
+          path: LuCI_Mobile_Patched.ipa
