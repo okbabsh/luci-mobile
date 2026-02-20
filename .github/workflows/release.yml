@@ -8,24 +8,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Flutter
+      - name: Setup Flutter (Pre-Breaking Change)
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.32.5'
-
-      - name: Patch Settings Screen
-        run: |
-          # We use a temp file to ensure the patch is applied correctly on macOS
-          # This finds 'value: 0,' and adds 'groupValue: 0,' right before it
-          sed 's/value: 0,/groupValue: 0, value: 0,/g' lib/screens/settings_screen.dart > settings_screen.tmp
-          mv settings_screen.tmp lib/screens/settings_screen.dart
-          
-          # Also patch the second radio button usually found in these screens
-          sed 's/value: 1,/groupValue: 0, value: 1,/g' lib/screens/settings_screen.dart > settings_screen.tmp
-          mv settings_screen.tmp lib/screens/settings_screen.dart
-          
-          echo "Applied required groupValue patches."
+          # v3.31.0 is the last version before the Radio API overhaul
+          flutter-version: '3.31.0' 
 
       - name: Resolve Dependencies
         run: flutter pub get
@@ -37,10 +25,10 @@ jobs:
         run: |
           mkdir -p Payload
           mv build/ios/iphoneos/Runner.app Payload/
-          zip -r LuCI_Mobile_Sideload.ipa Payload
+          zip -r LuCI_Mobile_Safe.ipa Payload
           
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: Luci-Mobile-Final
-          path: LuCI_Mobile_Sideload.ipa
+          path: LuCI_Mobile_Safe.ipa
